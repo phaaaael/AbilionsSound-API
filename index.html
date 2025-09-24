@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Abillions Sound</title>
+  <link rel="stylesheet" href="estilo.css" />
+  <link rel="icon" type="image/svg+xml" href="assets/logo-abillions-sound.svg" />
+  <style>
+ 
+    .audio-btn{
+      position:absolute; left:16px; bottom:16px;
+      padding:10px 14px; border-radius:999px;
+      border:1px solid var(--stroke, rgba(255,255,255,.25));
+      background:rgba(0,0,0,.45); color:#fff; font-weight:800;
+      backdrop-filter:blur(6px); cursor:pointer;
+      transition:transform .14s ease, background .22s ease, box-shadow .22s ease;
+    }
+    .audio-btn:hover{ transform:translateY(-1px); background:rgba(0,0,0,.60) }
+    .audio-btn:active{ transform:translateY(0) }
+
+    .sr-only{position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0}
+  </style>
+</head>
+<body>
+  
+  <div id="introOverlay" class="intro" aria-hidden="false">
+    <video id="introVideo" playsinline muted autoplay preload="auto" aria-label="Introdução do site">
+      <source src="assets/intro.site.mp4" type="video/mp4" />
+      Seu navegador não suporta vídeo HTML5.
+    </video>
+
+    <audio id="introAudio" preload="auto">
+      <source src="assets/intro.site.audio.mp4" type="audio/mp4" />
+    </audio>
+
+    <button id="skipIntro" class="skip-btn" type="button" aria-label="Pular intro">Pular intro ✕</button>
+    <button id="enableAudio" class="audio-btn" type="button" aria-label="Ativar áudio" style="display:none">🔈 Ativar áudio</button>
+  </div>
+
+  <div class="bg-glow"></div>
+  <header class="topbar">
+    <div class="left">
+      <button id="menuToggle" class="hamburger" aria-label="Abrir configurações" aria-controls="sideMenu" aria-expanded="false">
+        <img src="assets/icon-hamburger.svg" width="22" height="22" alt="Menu" />
+      </button>
+      <div class="brand" aria-label="Abillions Sound">
+       
+        <h1 class="sr-only">Abillions Sound</h1>
+      </div>
+    </div>
+    <div class="right">
+      <div class="search-pill" role="search">
+        <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5m-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14Z"/></svg>
+        <input type="search" placeholder="Buscar músicas, artistas…" aria-label="Buscar" />
+      </div>
+    </div>
+  </header>
+
+  
+  <nav id="sideMenu" class="side-menu" aria-label="Configurações">
+    <button id="closeMenu" class="close-btn" aria-label="Fechar menu">&times;</button>
+    <h2 class="menu-title">
+      <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M3 17v2h6v-2H3m0-6v2h18v-2H3m0-6v2h12V5H3Z"/></svg>
+      Configurações
+    </h2>
+
+    <div class="menu-card">
+      <h3 class="menu-h3">Conexão</h3>
+      <div class="grid form">
+        <label for="serverUrl" class="label">Servidor API</label>
+        <input id="serverUrl" class="input" type="url" inputmode="url" placeholder="Ex.: http://SEU-IP ou http://SEU-IP/api" autocomplete="off" spellcheck="false"/>
+        <button id="connectBtn" type="button" class="btn primary">
+          <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2a10 10 0 1 0 10 10A10.011 10.011 0 0 0 12 2m1 15h-2v-2h2Zm0-4h-2V7h2Z"/></svg>
+          Conectar
+        </button>
+        <p class="hint" id="healthText">Status: —</p>
+      </div>
+    </div>
+
+    <div class="menu-card">
+      <h3 class="menu-h3">Reprodução</h3>
+      <div class="grid form">
+        <label class="row"><input id="autoplayNextChk" type="checkbox" /> Autoplay próxima faixa</label>
+        <label class="row"><input id="volumeNormalizeChk" type="checkbox" /> Normalizar volume</label>
+
+        <label for="crossfadeRange" class="label">Crossfade (segundos)</label>
+        <input id="crossfadeRange" type="range" min="0" max="12" step="1" value="0" />
+        <div class="mini">Atual: <span id="crossfadeValue">0s</span></div>
+
+        <label for="speedSelect" class="label">Velocidade</label>
+        <select id="speedSelect" class="input">
+          <option value="0.75">0.75x</option><option value="0.9">0.9x</option>
+          <option value="1" selected>1.0x</option><option value="1.25">1.25x</option>
+          <option value="1.5">1.5x</option><option value="2">2.0x</option>
+        </select>
+
+        <label for="volumeRange" class="label">Volume</label>
+        <input id="volumeRange" type="range" min="0" max="1" step="0.01" value="1" />
+      </div>
+    </div>
+
+    <div class="menu-card">
+      <h3 class="menu-h3">Aparência</h3>
+      <div class="grid form">
+        <div class="row radios">
+          <span class="label">Tema</span>
+          <label><input type="radio" name="themeMode" value="system" /> Sistema</label>
+          <label><input type="radio" name="themeMode" value="dark" checked/> Escuro</label>
+          <label><input type="radio" name="themeMode" value="light" /> Claro</label>
+        </div>
+        <label for="accentColor" class="label">Cor de destaque</label>
+        <input id="accentColor" type="color" value="#1fa6ff" />
+        <label class="row"><input id="compactModeChk" type="checkbox" /> Densidade compacta</label>
+      </div>
+    </div>
+
+    <div class="menu-card">
+      <h3 class="menu-h3">Experiência</h3>
+      <div class="grid form">
+        <label class="row"><input id="showIntroChk" type="checkbox" checked /> Mostrar intro ao abrir</label>
+        <label class="row"><input id="rememberCollapseChk" type="checkbox" checked /> Lembrar estado das seções</label>
+        <label class="row"><input id="reducedMotionChk" type="checkbox" /> Reduzir animações</label>
+        <button id="shortcutsBtn" class="btn" type="button">Atalhos de teclado</button>
+      </div>
+    </div>
+
+    <div class="menu-card">
+      <h3 class="menu-h3">Dados &amp; Privacidade</h3>
+      <div class="grid form">
+        <div class="row wrap">
+          <button id="clearHistoryBtn" class="btn" type="button">Limpar histórico</button>
+          <button id="clearPrefsBtn" class="btn" type="button">Limpar preferências</button>
+          <button id="resetAppBtn" class="btn danger" type="button">Resetar app</button>
+        </div>
+        <div class="row wrap">
+          <button id="exportPrefsBtn" class="btn" type="button">Exportar prefs</button>
+          <label class="btn">Importar prefs <input id="importPrefsInput" type="file" accept="application/json" hidden /></label>
+        </div>
+        <label class="row"><input id="analyticsOptOutChk" type="checkbox" /> Desativar análises locais</label>
+      </div>
+    </div>
+
+    <div class="menu-card">
+      <h3 class="menu-h3">Sobre</h3>
+      <div class="grid form">
+        <div class="mini">Versão: <span id="appVersion">1.0.0</span></div>
+        <div class="mini">Build: <span id="appBuild">stable</span></div>
+      </div>
+    </div>
+  </nav>
+  
+
+  <main>
+    <div class="player card">
+      <div class="info">
+        <div id="nowPlaying" class="now-title">Nada tocando</div>
+        <div class="controls">
+          <button id="prevBtn" title="Música anterior" class="icon-btn" type="button"><svg width="18" height="18" viewBox="0 0 24 24"><path fill="currentColor" d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg></button>
+          <button id="rewindBtn" title="Retroceder 10s" class="icon-btn" type="button"><svg width="18" height="18" viewBox="0 0 24 24"><path fill="currentColor" d="M11 18V6l-8.5 6L11 18zm2-12v12l8.5-6L13 6z"/></svg></button>
+          <button id="playPauseBtn" class="play-btn" title="Play/Pause" type="button"><svg class="icon-play" width="20" height="20" viewBox="0 0 24 24"><path fill="currentColor" d="M8 5v14l11-7z"/></svg></button>
+          <button id="forwardBtn" title="Avançar 10s" class="icon-btn" type="button"><svg width="18" height="18" viewBox="0 0 24 24"><path fill="currentColor" d="M13 6v12l8.5-6L13 6zM11 6L2.5 12 11 18V6z"/></svg></button>
+          <button id="nextBtn" title="Próxima música" class="icon-btn" type="button"><svg width="18" height="18" viewBox="0 0 24 24"><path fill="currentColor" d="M16 6h2v12h-2zM6 6l8.5 6L6 18z"/></svg></button>
+        </div>
+        <div class="progress-container">
+          <span id="currentTime">0:00</span>
+          <input id="progressBar" type="range" min="0" max="100" value="0" aria-label="Progresso da reprodução"/>
+          <span id="totalTime">0:00</span>
+        </div>
+      </div>
+    </div>
+
+    <section class="card" id="topSection">
+      <div class="section-head">
+        <h2>Mais tocadas</h2>
+        <button class="collapse-toggle" data-target="#songList" aria-controls="songList" aria-expanded="true" title="Mostrar/ocultar lista">
+          <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg>
+        </button>
+      </div>
+      <ul id="songList" class="list"></ul>
+    </section>
+
+
+    <section class="card" id="historySection">
+      <div class="section-head">
+        <h2>Histórico</h2>
+        <button class="collapse-toggle" data-target="#historyList" aria-controls="historyList" aria-expanded="true" title="Mostrar/ocultar histórico">
+          <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg>
+        </button>
+      </div>
+      <ul id="historyList" class="list compact"></ul>
+    </section>
+
+    <section class="card" id="recommendSection">
+      <div class="section-head">
+        <h2>Recomendações</h2>
+        <button class="collapse-toggle" data-target="#recommendList" aria-controls="recommendList" aria-expanded="true" title="Mostrar/ocultar recomendações">
+          <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg>
+        </button>
+      </div>
+      <ul id="recommendList" class="list compact"></ul>
+    </section>
+  </main>
+
+  <footer class="foot"><div id="status" aria-live="polite"></div></footer>
+  <audio id="audio" preload="none"></audio>
+
+  
+  <script>
+    (() => {
+      const overlay = document.getElementById('introOverlay');
+      const video   = document.getElementById('introVideo');
+      const audio   = document.getElementById('introAudio');
+      const skipBtn = document.getElementById('skipIntro');
+      const enableBtn = document.getElementById('enableAudio');
+      let syncTimer = null;
+
+      const showIntroPref = () => (localStorage.getItem('as_show_intro') ?? '1') === '1';
+
+      function startSync(){
+        stopSync();
+        syncTimer = setInterval(() => {
+          if (!video || !audio) return;
+          if (audio.readyState < 2 || video.readyState < 2) return;
+          const drift = Math.abs((audio.currentTime||0) - (video.currentTime||0));
+          if (drift > 0.25) audio.currentTime = video.currentTime;
+          if (video.paused && !audio.paused) audio.pause();
+          if (!video.paused && audio.paused) audio.play().catch(()=>{});
+        }, 250);
+      }
+      function stopSync(){ if (syncTimer){ clearInterval(syncTimer); syncTimer = null; } }
+
+      function closeIntro(){
+        overlay.classList.remove('open');
+        overlay.setAttribute('aria-hidden','true');
+        try{ video.pause(); video.currentTime = 0; }catch{}
+        try{ audio.pause(); audio.currentTime = 0; }catch{}
+        stopSync();
+        setTimeout(()=>{ overlay.style.display = 'none'; }, 200);
+      }
+
+      async function tryPlayAll(){
+        try{
+          if (video.readyState >= 2) video.currentTime = 0;
+          if (audio.readyState >= 2) audio.currentTime = 0;
+          await video.play();        
+          await audio.play();         
+          enableBtn.style.display = 'none';
+          startSync();
+        }catch{
+          enableBtn.style.display = 'inline-flex'; 
+        }
+      }
+
+      function openIntro(){
+        if (!showIntroPref()) { overlay.remove(); return; }
+        overlay.style.display = 'flex';
+        overlay.classList.add('open');
+        tryPlayAll();
+      }
+
+      
+      skipBtn.addEventListener('click', closeIntro);
+      enableBtn.addEventListener('click', async () => {
+        try{
+          if (video.readyState >= 2) audio.currentTime = video.currentTime;
+          audio.muted = false;
+          await audio.play();
+          enableBtn.style.display = 'none';
+          startSync();
+        }catch{
+          enableBtn.textContent = '🔊 Tentar novamente';
+        }
+      });
+      video.addEventListener('ended', closeIntro);
+
+  
+      const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (prefersReduced) { video.removeAttribute('autoplay'); try{ video.pause(); }catch{} }
+
+      if (document.readyState === 'complete' || document.readyState === 'interactive') openIntro();
+      else document.addEventListener('DOMContentLoaded', openIntro, { once: true });
+    })();
+  </script>
+
+  
+  <script>
+    (() => {
+      const $  = (s,r=document)=>r.querySelector(s);
+      const $$ = (s,r=document)=>Array.from(r.querySelectorAll(s));
+      const KEYS = { HISTORY:'as_history_v1', REMEMBER_COLLAPSE:'as_remember_collapse', COLLAPSE_STATE:'as_collapse_state' };
+
+      const loadHistory = () => { try{ return JSON.parse(localStorage.getItem(KEYS.HISTORY)) || []; }catch{ return []; } };
+      const saveHistory = (list) => { try{ localStorage.setItem(KEYS.HISTORY, JSON.stringify(list)); }catch{} };
+
+    
+      window.addToHistory = (track) => {
+        if(!track || !track.title) return;
+        const id = track.id || (track.title + '|' + (track.artist||'')); track.id = id;
+        const hist = loadHistory();
+        const ix = hist.findIndex(x=>x.id===id);
+        if(ix>=0) hist.splice(ix,1);
+        hist.unshift({
+          id, title:track.title, artist:track.artist||'Desconhecido',
+          cover:track.cover||'', duration:track.duration||0, ts:Date.now()
+        });
+        if(hist.length>50) hist.length=50;
+        saveHistory(hist);
+        renderHistory();
+        renderRecommendations();
+      };
+
+      const formatDuration = (s) => {
+        if(!s || isNaN(s)) return '';
+        const m = Math.floor(s/60), r = Math.floor(s%60);
+        return `${m}:${String(r).padStart(2,'0')}`;
+      };
+
+      function renderHistory(){
+        const listEl = $('#historyList');
+        if(!listEl) return; 
+        const hist = loadHistory();
+        listEl.innerHTML = '';
+        if(hist.length === 0){
+          listEl.innerHTML = '<li class="empty">Seu histórico aparecerá aqui quando tocar algo.</li>';
+          return;
+        }
+        hist.forEach(item=>{
+          const li = document.createElement('li');
+          li.innerHTML = `
+            <div class="meta">
+              <div class="title">${item.title}</div>
+              <div class="sub">${item.artist}${item.duration? ' • ' + formatDuration(item.duration):''}</div>
+            </div>
+            <button class="pill-btn" type="button" data-play-id="${item.id}" title="Tocar novamente">Tocar</button>
+          `;
+          listEl.appendChild(li);
+        });
+        listEl.onclick = (e)=>{
+          const btn = e.target.closest('[data-play-id]');
+          if(!btn) return;
+          const id = btn.getAttribute('data-play-id');
+          const track = loadHistory().find(x=>x.id===id);
+          if(typeof window.playTrackById === 'function'){ window.playTrackById(track); }
+          else { const st = $('#status'); if(st) st.textContent = `Tocar: ${track?.title || id}`; }
+        };
+      }
+
+      function renderRecommendations(){
+        const listEl = $('#recommendList');
+        if(!listEl) return;
+        const hist = loadHistory();
+        listEl.innerHTML = '';
+        if(hist.length === 0){
+          listEl.innerHTML = '<li class="empty">Ouça algumas faixas para receber recomendações.</li>';
+          return;
+        }
+        const counts = hist.reduce((acc,it)=>{ acc[it.artist]=(acc[it.artist]||0)+1; return acc; },{});
+        const topArtists = Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([name])=>name);
+        const recs = [];
+        topArtists.forEach(a=>{
+          const sample = hist.filter(h=>h.artist===a).slice(0,2);
+          sample.forEach(c=>{
+            recs.push({ id:'rec:'+c.id+':'+Math.random().toString(36).slice(2,7), title:`Mais de ${a}`, artist:c.title });
+          });
+        });
+        if(recs.length === 0){
+          listEl.innerHTML = '<li class="empty">Ainda sem recomendações. Continue ouvindo :)</li>';
+          return;
+        }
+        recs.slice(0,10).forEach(r=>{
+          const li = document.createElement('li');
+          li.innerHTML = `
+            <div class="meta">
+              <div class="title">${r.title}</div>
+              <div class="sub">${r.artist}</div>
+            </div>
+            <button class="pill-btn" type="button" data-rec="${r.id}" title="Ver recomendações">Ver</button>
+          `;
+          listEl.appendChild(li);
+        });
+        listEl.onclick = (e)=>{
+          const btn = e.target.closest('[data-rec]');
+          if(!btn) return;
+          const st = $('#status'); if(st) st.textContent = 'Abrindo recomendações relacionadas…';
+        };
+      }
+
+      function setupCollapsibles(){
+        const remember = (localStorage.getItem(KEYS.REMEMBER_COLLAPSE) ?? '1') === '1';
+        const saved = remember ? (JSON.parse(localStorage.getItem(KEYS.COLLAPSE_STATE) || '{}')) : {};
+        $$('button.collapse-toggle').forEach(btn=>{
+          const sel = btn.getAttribute('data-target');
+          const target = document.querySelector(sel);
+          if(!target) return;
+
+          if (remember && Object.prototype.hasOwnProperty.call(saved, sel)) {
+            const expanded = !!saved[sel];
+            btn.setAttribute('aria-expanded', String(expanded));
+            target.style.display = expanded ? '' : 'none';
+          }
+
+          btn.addEventListener('click', ()=>{
+            const expanded = btn.getAttribute('aria-expanded') === 'true';
+            const next = !expanded;
+            btn.setAttribute('aria-expanded', String(next));
+            target.style.display = next ? '' : 'none';
+            if( (localStorage.getItem(KEYS.REMEMBER_COLLAPSE) ?? '1') === '1'){
+              const cur = JSON.parse(localStorage.getItem(KEYS.COLLAPSE_STATE) || '{}');
+              cur[sel] = next;
+              localStorage.setItem(KEYS.COLLAPSE_STATE, JSON.stringify(cur));
+            }
+          });
+        });
+      }
+
+      document.addEventListener('DOMContentLoaded', ()=>{
+        setupCollapsibles();
+        renderHistory();
+        renderRecommendations();
+
+        
+        const songList = $('#songList');
+        if(songList && songList.children.length === 0){
+          const mock = [
+            {id:'1', title:'Ocean Drive', artist:'Duke Dumont'},
+            {id:'2', title:'Blinding Lights', artist:'The Weeknd'},
+            {id:'3', title:'Lose Yourself to Dance', artist:'Daft Punk'},
+            {id:'4', title:'Sunset Lover', artist:'Petit Biscuit'},
+          ];
+          mock.forEach(m=>{
+            const li=document.createElement('li');
+            li.innerHTML=`
+              <div class="meta">
+                <div class="title">${m.title}</div>
+                <div class="sub">${m.artist}</div>
+              </div>
+              <button class="pill-btn" type="button" data-top="${m.id}" title="Tocar agora">Tocar</button>
+            `;
+            songList.appendChild(li);
+          });
+          songList.onclick = (e)=>{
+            const btn = e.target.closest('[data-top]');
+            if(!btn) return;
+            const meta = btn.parentElement.querySelector('.meta');
+            const title = meta.querySelector('.title')?.textContent || '';
+            const artist = meta.querySelector('.sub')?.textContent || '';
+            window.addToHistory({id:btn.getAttribute('data-top'), title, artist});
+            const st = document.getElementById('status');
+            if(st) st.textContent = `Tocando: ${title} — ${artist}`;
+          };
+        }
+      });
+    })();
+  </script>
+
+  <script>
+    (() => {
+      const $  = (s,r=document)=>r.querySelector(s);
+      const $$ = (s,r=document)=>Array.from(r.querySelectorAll(s));
+
+      const KEYS = {
+        SERVER:'as_server_url', THEME:'as_theme_mode', ACCENT:'as_accent',
+        COMPACT:'as_compact', SHOW_INTRO:'as_show_intro', REMEMBER_COLLAPSE:'as_remember_collapse',
+        REDUCED_MOTION:'as_reduced_motion', AUTOPLAY_NEXT:'as_autoplay_next', VOLUME_NORMALIZE:'as_vol_norm',
+        SPEED:'as_speed', CROSSF:'as_crossfade', VOLUME:'as_volume', HISTORY:'as_history_v1',
+        ANALYTICS_OPTOUT:'as_analytics_off'
+      };
+
+      const sideMenu = $('#sideMenu');
+      const menuToggleBtn = $('#menuToggle');
+      const closeMenuBtn  = $('#closeMenu');
+      const serverUrlInput= $('#serverUrl');
+      const connectBtn    = $('#connectBtn');
+      const healthText    = $('#healthText');
+      const autoplayNextChk = $('#autoplayNextChk');
+      const volumeNormalizeChk = $('#volumeNormalizeChk');
+      const crossfadeRange = $('#crossfadeRange');
+      const crossfadeValue = $('#crossfadeValue');
+      const speedSelect = $('#speedSelect');
+      const volumeRange = $('#volumeRange');
+      const themeRadios = $$('input[name="themeMode"]', sideMenu);
+      const accentColor = $('#accentColor');
+      const compactModeChk = $('#compactModeChk');
+      const showIntroChk = $('#showIntroChk');
+      const rememberCollapseChk = $('#rememberCollapseChk');
+      const reducedMotionChk = $('#reducedMotionChk');
+      const shortcutsBtn = $('#shortcutsBtn');
+      const clearHistoryBtn = $('#clearHistoryBtn');
+      const clearPrefsBtn = $('#clearPrefsBtn');
+      const resetAppBtn = $('#resetAppBtn');
+      const exportPrefsBtn = $('#exportPrefsBtn');
+      const importPrefsInput = $('#importPrefsInput');
+      const appVersion = $('#appVersion');
+      const appBuild = $('#appBuild');
+      const statusEl = $('#status');
+      const audioTag = $('#audio');
+
+      const setStatus = (t)=>{ if(statusEl) statusEl.textContent=t; };
+
+      function openMenu(){ sideMenu.classList.add('open'); menuToggleBtn?.setAttribute('aria-expanded','true'); }
+      function closeMenu(){ sideMenu.classList.remove('open'); menuToggleBtn?.setAttribute('aria-expanded','false'); }
+      menuToggleBtn?.addEventListener('click', ()=> sideMenu.classList.contains('open')?closeMenu():openMenu());
+      closeMenuBtn?.addEventListener('click', closeMenu);
+
+      function applyThemeMode(mode){
+        const html=document.documentElement, body=document.body;
+        if(mode==='light'){ html.setAttribute('data-theme','light'); body.classList.add('light-mode'); }
+        else if(mode==='dark'){ html.removeAttribute('data-theme'); body.classList.remove('light-mode'); }
+        else {
+          const prefersLight = window.matchMedia('(prefers-color-scheme: light)').matches;
+          if(prefersLight){ html.setAttribute('data-theme','light'); body.classList.add('light-mode'); }
+          else { html.removeAttribute('data-theme'); body.classList.remove('light-mode'); }
+        }
+      }
+      function applyAccent(hex){
+        document.documentElement.style.setProperty('--accent', hex);
+        try{
+          const c=hex.replace('#',''); const r=parseInt(c.slice(0,2),16), g=parseInt(c.slice(2,4),16), b=parseInt(c.slice(4,6),16);
+          const darker='#'+[r,g,b].map(v=>Math.max(0,Math.floor(v*0.8)).toString(16).padStart(2,'0')).join('');
+          document.documentElement.style.setProperty('--accent-2', darker);
+        }catch{}
+      }
+      function applyCompact(on){ document.body.classList.toggle('compact', !!on); }
+      function applyReducedMotion(on){
+        document.documentElement.style.setProperty('--t', on?'.001s linear':'.22s ease');
+        document.documentElement.style.setProperty('--t-fast', on?'.001s linear':'.14s ease');
+      }
+
+    
+      serverUrlInput && (serverUrlInput.value = localStorage.getItem(KEYS.SERVER) || '');
+      const themeMode = localStorage.getItem(KEYS.THEME) || 'dark';
+      themeRadios.forEach(r=> r.checked = (r.value===themeMode)); applyThemeMode(themeMode);
+      const accent = localStorage.getItem(KEYS.ACCENT) || '#1fa6ff'; if(accentColor){ accentColor.value = accent; } applyAccent(accent);
+      const compact = (localStorage.getItem(KEYS.COMPACT)||'0')==='1'; if(compactModeChk){ compactModeChk.checked=compact; } applyCompact(compact);
+      const showIntro = (localStorage.getItem(KEYS.SHOW_INTRO) ?? '1')==='1'; if(showIntroChk){ showIntroChk.checked=showIntro; }
+      const rememberCollapse = (localStorage.getItem(KEYS.REMEMBER_COLLAPSE) ?? '1')==='1'; if(rememberCollapseChk){ rememberCollapseChk.checked=rememberCollapse; }
+      const reducedMotion = (localStorage.getItem(KEYS.REDUCED_MOTION)||'0')==='1'; if(reducedMotionChk){ reducedMotionChk.checked=reducedMotion; } applyReducedMotion(reducedMotion);
+      const autoplay = (localStorage.getItem(KEYS.AUTOPLAY_NEXT) ?? '1')==='1'; if(autoplayNextChk){ autoplayNextChk.checked=autoplay; }
+      const volNorm = (localStorage.getItem(KEYS.VOLUME_NORMALIZE)||'0')==='1'; if(volumeNormalizeChk){ volumeNormalizeChk.checked=volNorm; }
+      const speed = parseFloat(localStorage.getItem(KEYS.SPEED)||'1')||1; if(speedSelect){ speedSelect.value=String(speed);} if(audioTag) audioTag.playbackRate=speed;
+      const crossf = parseInt(localStorage.getItem(KEYS.CROSSF)||'0',10)||0; if(crossfadeRange){ crossfadeRange.value=String(crossf);} if(crossfadeValue){ crossfadeValue.textContent=crossf+'s'; }
+      const vol = parseFloat(localStorage.getItem(KEYS.VOLUME)||'1'); if(!isNaN(vol)){ if(audioTag) audioTag.volume=vol; if(volumeRange){ volumeRange.value=String(vol);} }
+      if(appVersion) appVersion.textContent='1.0.0'; if(appBuild) appBuild.textContent='stable';
+
+      
+      connectBtn?.addEventListener('click', async ()=>{
+        const u = (serverUrlInput?.value || '').trim();
+        if(!u) return setStatus('Informe o endereço do servidor.');
+        setStatus('Conectando…');
+        try{
+          const url = u.replace(/\/+$/,'');
+          const r = await fetch(url+'/api/saude', { cache:'no-store' });
+          if(!r.ok) throw new Error('HTTP '+r.status);
+          localStorage.setItem(KEYS.SERVER, url);
+          setStatus('Conectado!'); if(healthText) healthText.textContent='Status: servidor OK';
+          if(typeof window.loadTopSongs === 'function') window.loadTopSongs();
+        }catch(e){
+          setStatus('Falha ao conectar'); if(healthText) healthText.textContent='Status: erro ao conectar';
+        }
+      });
+
+      
+      themeRadios.forEach(r=> r.addEventListener('change', ()=>{ if(!r.checked) return; localStorage.setItem(KEYS.THEME,r.value); applyThemeMode(r.value); }));
+      accentColor?.addEventListener('input', e=>{ const hex=e.target.value; localStorage.setItem(KEYS.ACCENT,hex); applyAccent(hex); });
+      compactModeChk?.addEventListener('change', e=>{ localStorage.setItem(KEYS.COMPACT, e.target.checked?'1':'0'); applyCompact(e.target.checked); });
+      showIntroChk?.addEventListener('change', e=> localStorage.setItem(KEYS.SHOW_INTRO, e.target.checked?'1':'0'));
+      rememberCollapseChk?.addEventListener('change', e=> localStorage.setItem(KEYS.REMEMBER_COLLAPSE, e.target.checked?'1':'0'));
+      reducedMotionChk?.addEventListener('change', e=>{ localStorage.setItem(KEYS.REDUCED_MOTION, e.target.checked?'1':'0'); applyReducedMotion(e.target.checked); });
+
+      autoplayNextChk?.addEventListener('change', e=> localStorage.setItem(KEYS.AUTOPLAY_NEXT, e.target.checked?'1':'0'));
+      volumeNormalizeChk?.addEventListener('change', e=> localStorage.setItem(KEYS.VOLUME_NORMALIZE, e.target.checked?'1':'0'));
+      crossfadeRange?.addEventListener('input', e=> crossfadeValue.textContent = e.target.value + 's');
+      crossfadeRange?.addEventListener('change', e=> localStorage.setItem(KEYS.CROSSF, String(parseInt(e.target.value,10)||0)));
+      speedSelect?.addEventListener('change', e=>{ const v=parseFloat(e.target.value)||1; localStorage.setItem(KEYS.SPEED, String(v)); if(audioTag) audioTag.playbackRate=v; });
+      volumeRange?.addEventListener('input', e=>{ const v=parseFloat(e.target.value); if(audioTag && Number.isFinite(v)) audioTag.volume=v; });
+      volumeRange?.addEventListener('change', e=>{ const v=parseFloat(e.target.value); if(Number.isFinite(v)) localStorage.setItem(KEYS.VOLUME, String(v)); });
+
+      
+      clearHistoryBtn?.addEventListener('click', ()=>{
+        localStorage.removeItem(KEYS.HISTORY);
+        const listEl = document.getElementById('historyList');
+        if(listEl) listEl.innerHTML = '<li class="empty">Seu histórico aparecerá aqui quando tocar algo.</li>';
+        setStatus('Histórico limpo.');
+      });
+      clearPrefsBtn?.addEventListener('click', ()=>{
+        const server = localStorage.getItem(KEYS.SERVER);
+        const hist = localStorage.getItem(KEYS.HISTORY);
+        const v = localStorage.getItem(KEYS.VOLUME);
+        Object.keys(localStorage).forEach(k=>{ if(k.startsWith('as_')) localStorage.removeItem(k); });
+        if(server) localStorage.setItem(KEYS.SERVER, server);
+        if(hist) localStorage.setItem(KEYS.HISTORY, hist);
+        if(v) localStorage.setItem(KEYS.VOLUME, v);
+        setStatus('Preferências limpas.');
+      });
+      resetAppBtn?.addEventListener('click', ()=>{ localStorage.clear(); location.reload(); });
+      exportPrefsBtn?.addEventListener('click', ()=>{
+        const all = {};
+        Object.keys(localStorage).forEach(k=>{ if(k.startsWith('as_')) all[k]=localStorage.getItem(k); });
+        all._exportVersion = 1;
+        const blob = new Blob([JSON.stringify(all,null,2)], {type:'application/json'});
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'abilions-sound-prefs.json'; a.click(); URL.revokeObjectURL(a.href);
+      });
+      importPrefsInput?.addEventListener('change', async (e)=>{
+        const file = e.target.files?.[0]; if(!file) return;
+        try{
+          const text = await file.text(); const obj = JSON.parse(text);
+          Object.entries(obj).forEach(([k,v])=>{ if(k.startsWith('as_')) localStorage.setItem(k, v); });
+          setStatus('Preferências importadas. Recarregando…'); setTimeout(()=>location.reload(),300);
+        }catch{ setStatus('Falha ao importar preferências.'); } finally { e.target.value=''; }
+      });
+
+     
+      shortcutsBtn?.addEventListener('click', ()=>{
+        const map = [
+          ['Espaço','Play/Pause'],
+          ['← / →','Retroceder/Avançar 10s'],
+          ['↑ / ↓','Volume +/-'],
+          ['N / P','Próxima/Anterior'],
+        ];
+        alert('Atalhos de teclado:\n' + map.map(x=>`${x[0]} — ${x[1]}`).join('\n'));
+      });
+    })();
+  </script>
+
+
+  <script src="app.js" defer></script>
+</body>
+</html>
